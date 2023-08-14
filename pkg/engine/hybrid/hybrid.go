@@ -41,90 +41,29 @@ func New(options *types.CrawlerOptions) (*Crawler, error) {
 
 	previousPIDs := findChromeProcesses()
 
-	var launcherURL string
-	var chromeLauncher *launcher.Launcher
-
-	if options.Options.ChromeWSUrl != "" {
-		launcherURL = options.Options.ChromeWSUrl
-	} else {
-		// create new chrome launcher instance
-		chromeLauncher, err = buildChromeLauncher(options, dataStore)
-		if err != nil {
-			return nil, err
-		}
-
-		// launch chrome headless process
-		launcherURL, err = chromeLauncher.Launch()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	browser := rod.New().ControlURL(launcherURL)
-	if browserErr := browser.Connect(); browserErr != nil {
-		return nil, errorutil.NewWithErr(browserErr).Msgf("failed to connect to chrome instance at %s", launcherURL)
-	}
-
-	// create a new browser instance (default to incognito mode)
-	if !options.Options.HeadlessNoIncognito {
-		incognito, err := browser.Incognito()
-		if err != nil {
-			if chromeLauncher != nil {
-				chromeLauncher.Kill()
-			}
-			return nil, errorutil.NewWithErr(err).Msgf("failed to create incognito browser")
-		}
-		browser = incognito
-	}
-
-	shared, err := common.NewShared(options)
-	if err != nil {
-		return nil, errorutil.NewWithErr(err).WithTag("hybrid")
-	}
-
-	crawler := &Crawler{
-		Shared:       shared,
-		browser:      browser,
-		previousPIDs: previousPIDs,
-		tempDir:      dataStore,
-	}
-
-	return crawler, nil
-}
-
-// Close closes the crawler process
-func (c *Crawler) Close() error {
-	if c.Options.Options.ChromeWSUrl == "" {
-		if err := c.browser.Close(); err != nil {
-			return err
-		}
-	}
-	if c.Options.Options.ChromeDataDir == "" {
-		if err := os.RemoveAll(c.tempDir); err != nil {
-			return err
-		}
-	}
-	return c.killChromeProcesses()
-}
-
-// Crawl crawls a URL with the specified options
-func (c *Crawler) Crawl(rootURL string) error {
-	crawlSession, err := c.NewCrawlSessionWithURL(rootURL)
-	crawlSession.Browser = c.browser
-	if err != nil {
-		return errorutil.NewWithErr(err).WithTag("hybrid")
-	}
-	defer crawlSession.CancelFunc()
-
-	gologger.Info().Msgf("Started headless crawling for => %v", rootURL)
-	if err := c.Do(crawlSession, c.navigateRequest); err != nil {
-		return errorutil.NewWithErr(err).WithTag("standard")
-	}
-	return nil
-}
-
-// buildChromeLauncher builds a new chrome launcher instance
-func buildChromeLauncher(options *types.CrawlerOptions, dataStore string) (*launcher.Launcher, error) {
+	/*
+		"blink-settings" 中还有许多其他设置，可用于自定义 Chromium 的行为。这些设置包括：
+		imagesEnabled: 此设置控制是否加载图片。
+		cssEnabled: 此设置控制是否加载 CSS。
+		JavaScriptEnabled: 此设置控制是否加载 JavaScript。
+		pluginsEnabled: 此设置控制是否加载插件。
+		fontsEnabled: 此设置控制是否加载字体。
+		framesEnabled: 此设置控制是否加载框架。
+		formsEnabled: 此设置控制是否加载表单。
+		cookiesEnabled: 此设置控制是否加载 Cookie。
+		localStorageEnabled: 此设置控制是否加载本地存储。
+		sessionStorageEnabled: 此设置控制是否加载会话存储。
+		cacheEnabled: 此设置控制是否启用缓存。
+		diskCacheEnabled: 此设置控制是否启用磁盘缓存。
+		memoryCacheEnabled: 此设置控制是否启用内存缓存。
+		prefetchDNS: 此设置控制是否预取 DNS 查询。
+		prefetchResources: 此设置控制是否预取资源。
+		enable-pinch-zoom: 此设置控制是否启用捏缩缩放。
+		enable-touch-events: 此设置控制是否启用触摸事件。
+		enable-web-security: 此设置控制是否启用 Web 安全性。
+		enable-experimental-web-platform-features: 此设置控制是否启用实验性 Web 平台功能。
+		您可以使用 chrome://flags 页面查看和设置所有可用的 "blink-settings" 设置。
+	*/
 	chromeLauncher := launcher.New().
 		Leakless(false).
 		Set("disable-gpu", "true").
@@ -133,8 +72,12 @@ func buildChromeLauncher(options *types.CrawlerOptions, dataStore string) (*laun
 		Set("disable-crash-reporter", "true").
 		Set("disable-notifications", "true").
 		Set("hide-scrollbars", "true").
+		Set("enable-quic", "true").
+		Set("quic-version", "h3-23").
 		Set("window-size", fmt.Sprintf("%d,%d", 1080, 1920)).
 		Set("mute-audio", "true").
+		Set("disable-video", "true").
+		Set("blink-settings", "imagesEnabled=false;cssEnabled=false;fontsEnabled=false;pluginsEnabled=false;webrtcEnabled=false"). // 禁止图片、css加载
 		Delete("use-mock-keychain").
 		UserDataDir(dataStore)
 
@@ -171,7 +114,68 @@ func buildChromeLauncher(options *types.CrawlerOptions, dataStore string) (*laun
 		chromeLauncher.Set(flags.Flag(k), v)
 	}
 
-	return chromeLauncher, nil
+	launcherURL, err := chromeLauncher.Launch()
+	if err != nil {
+		return nil, err
+	}
+
+	browser := rod.New().ControlURL(launcherURL)
+	if browserErr := browser.Connect(); browserErr != nil {
+		return nil, browserErr
+	}
+
+	// create a new browser instance (default to incognito mode)
+	if !options.Options.HeadlessNoIncognito {
+		incognito, err := browser.Incognito()
+		if err != nil {
+			chromeLauncher.Kill()
+			return nil, errorutil.NewWithErr(err).Msgf("failed to create incognito browser")
+		}
+		browser = incognito
+	}
+
+	shared, err := common.NewShared(options)
+	if err != nil {
+		return nil, errorutil.NewWithErr(err).WithTag("hybrid")
+	}
+
+	crawler := &Crawler{
+		Shared:       shared,
+		browser:      browser,
+		previousPIDs: previousPIDs,
+		tempDir:      dataStore,
+	}
+
+	return crawler, nil
+}
+
+// Close closes the crawler process
+func (c *Crawler) Close() error {
+	if err := c.browser.Close(); err != nil {
+		return err
+	}
+	if c.Options.Options.ChromeDataDir == "" {
+		if err := os.RemoveAll(c.tempDir); err != nil {
+			return err
+		}
+	}
+	return c.killChromeProcesses()
+}
+
+// Crawl crawls a URL with the specified options
+func (c *Crawler) Crawl(rootURL string) error {
+	crawlSession, err := c.NewCrawlSessionWithURL(rootURL)
+	crawlSession.Browser = c.browser
+	if err != nil {
+		return errorutil.NewWithErr(err).WithTag("hybrid")
+	}
+	defer crawlSession.CancelFunc()
+
+	gologger.Info().Msgf("Started headless crawling for => %v", rootURL)
+	if err := c.Do(crawlSession, c.navigateRequest); err != nil {
+		return errorutil.NewWithErr(err).WithTag("standard")
+	}
+	return nil
 }
 
 // killChromeProcesses any and all new chrome processes started after
