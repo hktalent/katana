@@ -9,12 +9,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/hktalent/katana/pkg/utils/extensions"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/logrusorgru/aurora"
 	"github.com/mitchellh/mapstructure"
 	"github.com/projectdiscovery/dsl"
 	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/katana/pkg/utils/extensions"
 	errorutil "github.com/projectdiscovery/utils/errors"
 )
 
@@ -333,7 +333,7 @@ var (
 )
 
 // ignoreErr checks if the error is to be ignored or not
-// Reference: https://github.com/projectdiscovery/katana/pull/537
+// Reference: https://github.com/hktalent/katana/pull/537
 func ignoreErr(err error) bool {
 	if showDSLErr {
 		return false

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hktalent/katana/pkg/output"
 	"github.com/projectdiscovery/goflags"
-	"github.com/projectdiscovery/katana/pkg/output"
 )
 
 // OnResultCallback (output.Result)

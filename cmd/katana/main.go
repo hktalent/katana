@@ -8,11 +8,11 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/hktalent/katana/internal/runner"
+	"github.com/hktalent/katana/pkg/output"
+	"github.com/hktalent/katana/pkg/types"
 	"github.com/projectdiscovery/goflags"
 	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/katana/internal/runner"
-	"github.com/projectdiscovery/katana/pkg/output"
-	"github.com/projectdiscovery/katana/pkg/types"
 	errorutil "github.com/projectdiscovery/utils/errors"
 )
 

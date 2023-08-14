@@ -17,6 +17,6 @@ type Filter interface {
 	// loop cycle are
 	// - implementing upper hard limit to the URL length (https://bugs.chromium.org/p/chromium/issues/detail?id=69227 => 2Mb)
 	// - Heuristically find the longest repeating substring and set a max threshold of how many max times it should repeat (eg. 10)
-	// Todo: This should be replace with graph cycle detection => https://github.com/projectdiscovery/katana/pull/174
+	// Todo: This should be replace with graph cycle detection => https://github.com/hktalent/katana/pull/174
 	IsCycle(url string) bool
 }

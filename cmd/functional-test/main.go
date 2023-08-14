@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hktalent/katana/internal/testutils"
 	"github.com/logrusorgru/aurora"
 	"github.com/pkg/errors"
-	"github.com/projectdiscovery/katana/internal/testutils"
 )
 
 var (

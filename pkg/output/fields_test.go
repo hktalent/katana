@@ -3,7 +3,7 @@ package output
 import (
 	"testing"
 
-	"github.com/projectdiscovery/katana/pkg/navigation"
+	"github.com/hktalent/katana/pkg/navigation"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,16 +1,16 @@
 package runner
 
 import (
+	"github.com/hktalent/katana/pkg/engine"
+	"github.com/hktalent/katana/pkg/engine/hybrid"
+	"github.com/hktalent/katana/pkg/engine/parser"
+	"github.com/hktalent/katana/pkg/engine/standard"
+	"github.com/hktalent/katana/pkg/types"
 	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/katana/pkg/engine"
-	"github.com/projectdiscovery/katana/pkg/engine/hybrid"
-	"github.com/projectdiscovery/katana/pkg/engine/parser"
-	"github.com/projectdiscovery/katana/pkg/engine/standard"
-	"github.com/projectdiscovery/katana/pkg/types"
 	errorutil "github.com/projectdiscovery/utils/errors"
 	fileutil "github.com/projectdiscovery/utils/file"
-	"go.uber.org/multierr"
 	updateutils "github.com/projectdiscovery/utils/update"
+	"go.uber.org/multierr"
 )
 
 // Runner creates the required resources for crawling

@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/hktalent/katana/pkg/types"
+	"github.com/hktalent/katana/pkg/utils"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/gologger/formatter"
 	"github.com/projectdiscovery/gologger/levels"
-	"github.com/projectdiscovery/katana/pkg/types"
-	"github.com/projectdiscovery/katana/pkg/utils"
 	errorutil "github.com/projectdiscovery/utils/errors"
 	fileutil "github.com/projectdiscovery/utils/file"
 	"gopkg.in/yaml.v3"

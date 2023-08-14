@@ -1,9 +1,9 @@
 package standard
 
 import (
+	"github.com/hktalent/katana/pkg/engine/common"
+	"github.com/hktalent/katana/pkg/types"
 	"github.com/projectdiscovery/gologger"
-	"github.com/projectdiscovery/katana/pkg/engine/common"
-	"github.com/projectdiscovery/katana/pkg/types"
 	errorutil "github.com/projectdiscovery/utils/errors"
 )
 

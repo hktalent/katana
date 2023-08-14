@@ -1,7 +1,7 @@
 package files
 
 import (
-	"github.com/projectdiscovery/katana/pkg/navigation"
+	"github.com/hktalent/katana/pkg/navigation"
 	"github.com/projectdiscovery/retryablehttp-go"
 )
 
